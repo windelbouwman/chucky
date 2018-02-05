@@ -1,5 +1,7 @@
 
-# Chucky
+# Welcome to Chucky
+
+***Firmware updates made child's play!***
 
 Welcome to the chucky project. The goal of the project is to make firmware
 updates of small devices faster by the idea that the update will probably
