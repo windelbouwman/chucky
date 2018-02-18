@@ -15,6 +15,15 @@ where chucky is intended for microcontrollers!
 - tiffany is an implementation of the update algorithm in C which can be run
   on a microcontroller.
 
+# Usage
+
+To compare two firmware files, use the compare command like this:
+
+    python chucky.py compare ../demos/pybv10-20170611-v1.9.1.dfu ../demos/pybv10-20170823-v1.9.2.dfu
+
+This example command compares two micropython releases from https://micropython.org/download/
+
+
 # Build status
 
 [![Build Status](https://travis-ci.org/windelbouwman/chucky.svg?branch=master)](https://travis-ci.org/windelbouwman/chucky)
@@ -26,3 +35,9 @@ where chucky is intended for microcontrollers!
   old hashes
 - TBD: use leb128 to store integers to save space?
 
+# Credits
+
+- The whole idea began when attending the FOSDEM 2018 talk of Lennart Poettering:
+  https://www.youtube.com/watch?v=Hfmpaymmpa8
+
+  https://fosdem.org/2018/schedule/event/distributing_os_images_with_casync/

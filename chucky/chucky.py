@@ -3,6 +3,7 @@
 """
 
 
+import argparse
 import logging
 import hashlib
 import statistics
@@ -62,6 +63,11 @@ class DataStore:
     def __init__(self):
         self._map = {}
 
+    def save(self, folder):
+        """ Save the datastore to disk """
+        # TODO: Implement
+        raise NotImplementedError('TODO')
+
     def get_blob(self, h):
         """ Given a hash, get the blob """
         return self._map[h]
@@ -105,33 +111,26 @@ def chop(content, data_store):
     sizes = []
     for chunk in chunks:
         sizes.append(len(chunk))
-        print(chunk.blob.h.hex(), len(chunk.blob.h), len(chunk))
-    stats = ', '.join(
-        '{}={}'.format(n, getattr(statistics, n)(sizes))
-        for n in ['mean', 'variance', 'stdev'])
-    logger.debug('Chunk size stats: %s', stats)
+        print(
+            'hash:', chunk.blob.h.hex(),
+            # 'blob hash length:', len(chunk.blob.h),
+            'blob size:', len(chunk))
+    if len(chunks) > 1:
+        logger.debug('%s chunks', len(chunks))
+        stats = ', '.join(
+            '{}={}'.format(n, getattr(statistics, n)(sizes))
+            for n in ['mean', 'variance', 'stdev'])
+        logger.debug('Chunk size stats: %s', stats)
+    else:
+        logger.debug('Only one chunk')
     return ChoppedData(chunks)
 
 
-def chunk_content(content, data_store):
+def chunk_content(content, data_store, Q=9):
     """ Divide content into chunks based on content. """
     logger.debug('Dividing content of %s bytes into chunks', len(content))
-    chunk = bytearray()
-    chunk_offset = 0
-    bh = buzhash.BuzHash()
-    Q = 8
-    mask = (1 << Q) - 1
-    for byte_offset, byte in enumerate(content):
-        if bh.digest() & mask == 0:
-            yield data_store.new_chunk(chunk_offset, bytes(chunk))
-            chunk = bytearray()
-            chunk_offset = byte_offset
-
-        # Append byte to current chunk:
-        chunk.append(byte)
-        bh.feed(byte)
-
-    yield data_store.new_chunk(chunk_offset, bytes(chunk))
+    for offset, chunk in buzhash.split_data(content, Q=Q):
+        yield data_store.new_chunk(offset, chunk)
 
 
 def serve():
@@ -145,11 +144,43 @@ def serve():
     raise NotImplementedError('TODO')
 
 
+def compare(file1, file2):
+    """ Compare two files to check for equal chunks """
+    ds = DataStore()
+    chopped1 = chop(file1.read(), ds)
+    chopped2 = chop(file2.read(), ds)
+
+    # print(chopped1)
+    # print(chopped2)
+    h1_set = set(c.blob.h for c in chopped1.chunks)
+    # print(h1_set)
+    h2_set = set(c.blob.h for c in chopped2.chunks)
+    # print(h1_set.union(h2_set))
+    # Upa
+    for chunk in chopped2.chunks:
+        if chunk.blob.h in h1_set:
+            print('blob already present', chunk.blob.h)
+        else:
+            print('blob is new', chunk.blob.h)
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    # Step 1: read content
-    with open(__file__, 'r') as f:
-        content = f.read().encode('ascii')
-    content = content * 10  # Duplicate content on purpose!
-    ds = DataStore()
-    chop(content, ds)
+    parser = argparse.ArgumentParser()
+    sp = parser.add_subparsers(dest='command')
+    compare_parser = sp.add_parser('compare')
+    compare_parser.add_argument('file1', type=argparse.FileType('rb'))
+    compare_parser.add_argument('file2', type=argparse.FileType('rb'))
+    args = parser.parse_args()
+
+    if args.command == 'compare':
+        compare(args.file1, args.file2)
+    elif args.command == 'chop':
+        # Step 1: read content
+        with open(__file__, 'r') as f:
+            content = f.read().encode('ascii')
+        content = content * 10  # Duplicate content on purpose!
+        ds = DataStore()
+        chop(content, ds)
+    else:
+        raise NotImplementedError(args.command)

@@ -8,6 +8,17 @@ https://github.com/rzio/flywheel-components-net/blob/master/Chunking/Util/BuzHas
 http://www.dcs.gla.ac.uk/~hamer/cakes-talk.pdf
 
 https://github.com/borgbackup/borg/blob/master/src/borg/_chunker.c
+
+https://rsync.samba.org/tech_report/
+
+https://rsync.samba.org/tech_report/node1.html
+
+https://moinakg.wordpress.com/2013/06/22/high-performance-content-defined-chunking/
+
+http://0pointer.net/blog/casync-a-tool-for-distributing-file-system-images.html
+
+
+https://moinakg.wordpress.com/2013/06/22/high-performance-content-defined-chunking/
 """
 
 # Some nice lookup table:
@@ -50,12 +61,62 @@ TABLE = [
 # TODO: write some sort of a test for this?
 
 class BuzHash:
-    def __init__(self):
-        self._hash = 0
+    def __init__(self, seed=0):
+        self._hash = seed
 
     def feed(self, byte):
         # TODO: implement right logic here.
-        self._hash ^= TABLE[byte]
+        self._hash = bsl(self._hash, 1) ^ TABLE[byte]
+
+    def slide(self, in_byte, out_byte, window_size=16):
+        self._hash = bsl(self._hash, 1) ^ TABLE[in_byte] ^ bsl(TABLE[out_byte], window_size)
 
     def digest(self):
         return self._hash
+
+
+def hash_data(data, seed=0):
+    bh = BuzHash(seed=seed)
+    for byte in data:
+        bh.feed(byte)
+    return bh.digest()
+
+
+def split_data(data, window_size=16, Q=6):
+    """ Split data based on fingerprints.
+
+    A sliding window of 16 bytes is moved over the data. When the hash of this
+    data meets some condition, a split is made.
+
+    Returns offset and chunk tuples
+    """
+    avg_size = 1 << Q
+    mask = avg_size - 1
+    min_size = avg_size >> 1
+
+    if len(data) <= 16:
+        yield 0, data
+    else:
+        bh = BuzHash(seed=0)
+
+        # Initialize the hash:
+        for b in data[:window_size]:
+            bh.feed(b)
+
+        start = 0
+        for offset in range(0, len(data) - window_size):
+            # Update hash:
+            in_byte = data[offset + window_size]
+            out_byte = data[offset]
+            bh.slide(in_byte, out_byte, window_size=window_size)
+
+            if (bh.digest() & mask) == 0 and (offset - start) > min_size:
+                yield start, data[start:offset]
+                start = offset
+        yield start, data[start:]
+
+
+def bsl(value, amount):
+    """ Bitwise rotate left """
+    mask = (2**32) - 1
+    return ((value << amount) & mask) | (value >> (32 - amount))
