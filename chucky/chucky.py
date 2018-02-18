@@ -23,7 +23,7 @@ class Chunk:
         self.blob = blob
 
     def __len__(self):
-        return len(self.blob.data)
+        return len(self.blob)
 
 
 class Blob:
@@ -31,6 +31,9 @@ class Blob:
     def __init__(self, data, h):
         self.data = data
         self.h = h
+
+    def __len__(self):
+        return len(self.data)
 
 
 class ChoppedData:
@@ -53,6 +56,10 @@ class ChoppedData:
         return functools.reduce(
             operator.add,
             (c.blob.data for c in self.chunks))
+
+    @property
+    def size(self):
+        return sum(len(chunk) for chunk in self.chunks)
 
 
 class DataStore:
@@ -111,10 +118,10 @@ def chop(content, data_store):
     sizes = []
     for chunk in chunks:
         sizes.append(len(chunk))
-        print(
-            'hash:', chunk.blob.h.hex(),
-            # 'blob hash length:', len(chunk.blob.h),
-            'blob size:', len(chunk))
+        # print(
+        #    'hash:', chunk.blob.h.hex(),
+        #    # 'blob hash length:', len(chunk.blob.h),
+        #    'blob size:', len(chunk))
     if len(chunks) > 1:
         logger.debug('%s chunks', len(chunks))
         stats = ', '.join(
@@ -154,14 +161,26 @@ def compare(file1, file2):
     # print(chopped2)
     h1_set = set(c.blob.h for c in chopped1.chunks)
     # print(h1_set)
-    h2_set = set(c.blob.h for c in chopped2.chunks)
+    # h2_set = set(c.blob.h for c in chopped2.chunks)
     # print(h1_set.union(h2_set))
     # Upa
+    new_size = 0
+    have_size = 0
     for chunk in chopped2.chunks:
         if chunk.blob.h in h1_set:
-            print('blob already present', chunk.blob.h)
+            # print('blob already present', chunk.blob.h)
+            have_size += len(chunk)
         else:
-            print('blob is new', chunk.blob.h)
+            # print('blob is new', chunk.blob.h)
+            new_size += len(chunk)
+    print(
+        '{} new bytes ({} %).'.format(
+            new_size, new_size * 100 / chopped2.size))
+    print(
+        '{} bytes already got ({} %)'.format(
+            have_size, have_size * 100 / chopped2.size))
+
+    # TODO generate html file with graphical view
 
 
 if __name__ == '__main__':
