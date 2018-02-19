@@ -32,6 +32,10 @@ def compare(file1, file2):
     chopped2 = chop(file2.read(), ds)
 
     #ds.save(os.path.dirname(os.path.realpath(__file__)))
+
+    #ds_loaded = DataStore()
+    #ds_loaded.load(os.path.dirname(os.path.realpath(__file__)))
+
     # print(chopped1)
     # print(chopped2)
     h1_set = set(c.blob.h for c in chopped1.chunks)

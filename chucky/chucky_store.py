@@ -22,12 +22,22 @@ class DataStore:
         self._map = {}
         self._filestore = None
 
+    def __len__(self):
+        return len(self._map)
+
     def save(self, folder):
         """ Save the datastore to disk """
         if not self._filestore:
             self._filestore = DataStoreFiles(folder)
 
         self._filestore.store(self._map)
+
+    def load(self, folder):
+        """ Load datastore from disk"""
+        if not self._filestore:
+            self._filestore = DataStoreFiles(folder)
+
+        self._filestore.load(self._map)
 
     def get_blob(self, h):
         """ Given a hash, get the blob """
@@ -40,11 +50,10 @@ class DataStore:
         a new blob.
         """
         h = hash_blob(data)
-        import binascii
+
         if h in self._map:
             blob = self._map[h]
             assert blob.data == data
-            #print(binascii.hexlify(data))
         else:
             blob = Blob(data, h)
             self._map[h] = blob

@@ -60,5 +60,5 @@ def chop(content, data_store):
 def chunk_content(content, data_store, Q=9):
     """ Divide content into chunks based on content. """
     logger.debug('Dividing content of %s bytes into chunks', len(content))
-    for offset, chunk in buzhash.split_data(content):
+    for offset, chunk in buzhash.split_data(content, Q=Q):
         yield data_store.new_chunk(offset, chunk)
