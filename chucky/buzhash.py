@@ -93,6 +93,7 @@ def split_data(data, window_size=16, Q=6):
     avg_size = 1 << Q
     mask = avg_size - 1
     min_size = avg_size >> 1
+    max_size = 5000
 
     if len(data) <= 16:
         yield 0, data
@@ -110,7 +111,7 @@ def split_data(data, window_size=16, Q=6):
             out_byte = data[offset]
             bh.slide(in_byte, out_byte, window_size=window_size)
 
-            if (bh.digest() & mask) == 0 and (offset - start) > min_size:
+            if (bh.digest() & mask) == 0 and (offset - start) > min_size or (offset - start) == max_size:
                 yield start, data[start:offset]
                 start = offset
         yield start, data[start:]

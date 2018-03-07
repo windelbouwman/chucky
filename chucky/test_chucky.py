@@ -3,17 +3,19 @@ import functools
 import operator
 
 import chucky
+from chucky_chopper import chunk_content
+from chucky_chopper import ChoppedData
 import buzhash
 
 
-class ChuckyTestCase(unittest.TestCase):
+class ChuckyChopperTestCase(unittest.TestCase):
     def setUp(self):
         self.content = bytes(range(10, 100)) * 100
 
     def test_chopping(self):
         """ Check that restoring after chopping restores original """
         data_store = chucky.DataStore()
-        chunks = list(chucky.chunk_content(self.content, data_store, Q=4))
+        chunks = list(chunk_content(self.content, data_store, Q=4))
         self.assertGreater(len(chunks), 1)
         content2 = functools.reduce(
             operator.add,
@@ -26,7 +28,7 @@ class ChuckyTestCase(unittest.TestCase):
         chopped = chucky.chop(self.content, data_store)
         self.assertEqual(self.content, chopped.all_data())
         recipe = chopped.serialize()
-        chopped2 = chucky.ChoppedData.from_recipe(recipe, data_store)
+        chopped2 = ChoppedData.from_recipe(recipe, data_store)
         content2 = chopped2.all_data()
         self.assertEqual(self.content, content2)
 
