@@ -1,5 +1,7 @@
 sudo: false
 language: python
+env:
+  - PYTHONPATH=chucky
 python:
     - "3.6"
 install: pip install tox-travis pytest pytest-cov

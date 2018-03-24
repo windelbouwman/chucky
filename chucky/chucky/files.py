@@ -1,7 +1,7 @@
 import os
 import binascii
 
-from chucky_blob import Blob
+from .blob import Blob
 
 
 class DataStoreFiles:
@@ -13,7 +13,7 @@ class DataStoreFiles:
         return len(self._files)
 
     def store(self, ds):
-        path = self._location  + '\\.chuckstore'
+        path = os.path.join(self._location, '.chuckstore')
 
         if not os.path.isdir(path):
             os.mkdir(path)
@@ -32,7 +32,7 @@ class DataStoreFiles:
                     f.write(ds[blob].data)
 
     def load(self, ds):
-        path = self._location + '\\.chuckstore'
+        path = os.path.join(self._location, '.chuckstore')
 
         if not os.path.isdir(path):
             return
@@ -43,5 +43,5 @@ class DataStoreFiles:
                     data = f.read()
                     hash = binascii.unhexlify(name)
 
-                    blob = Blob(data , hash)
+                    blob = Blob(data, hash)
                     ds[hash] = blob

@@ -1,6 +1,5 @@
-from chucky_blob import hash_blob
-from chucky_blob import Blob
-from chucky_files import DataStoreFiles
+from .blob import hash_blob, Blob
+from .files import DataStoreFiles
 
 
 class Chunk:

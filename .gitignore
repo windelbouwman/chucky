@@ -1,5 +1,7 @@
 
 .cache
+.coverage
+.tox
 __pycache__
 .idea/*
-.pytest_cache/*
+.pytest_cache

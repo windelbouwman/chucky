@@ -3,12 +3,12 @@
 """
 
 
-import os
 import argparse
 import logging
+import glob
 
-from chucky_store import DataStore
-from chucky_chopper import chop
+from .store import DataStore
+from .chopper import chop
 
 
 logger = logging.getLogger('chucky')
@@ -25,12 +25,27 @@ def serve():
     raise NotImplementedError('TODO')
 
 
-def compare(file1, file2):
-    """ Compare two files to check for equal chunks """
-    ds = DataStore()
-    chopped1 = chop(file1.read(), ds)
-    chopped2 = chop(file2.read(), ds)
+def compare(filenames):
+    """ Compares files to check for equal chunks """
+    logging.info('Comparing %s', filenames)
+    # Create table:
+    rows = []
+    for filename1 in filenames:
+        row = []
+        for filename2 in filenames:
+            r = compare_two_files(filename1, filename2)
+            row.append(r)
+        rows.append(row)
+    print(rows)
 
+
+def compare_two_files(filename1, filename2):
+    ds = DataStore()
+    logging.info('Comparing %s and %s', filename1, filename2)
+    with open(filename1, 'rb') as file1:
+        chopped1 = chop(file1.read(), ds)
+    with open(filename2, 'rb') as file2:
+        chopped2 = chop(file2.read(), ds)
     #ds.save(os.path.dirname(os.path.realpath(__file__)))
 
     #ds_loaded = DataStore()
@@ -58,21 +73,28 @@ def compare(file1, file2):
     print(
         '{} bytes already got ({} %)'.format(
             have_size, have_size * 100 / chopped2.size))
+    got_percent = have_size * 100 / chopped2.size
+    return got_percent
 
+
+def visualize():
     # TODO generate html file with graphical view
+    pass
 
 
-if __name__ == '__main__':
+def main():
     logging.basicConfig(level=logging.DEBUG)
     parser = argparse.ArgumentParser()
     sp = parser.add_subparsers(dest='command')
     compare_parser = sp.add_parser('compare')
-    compare_parser.add_argument('file1', type=argparse.FileType('rb'))
-    compare_parser.add_argument('file2', type=argparse.FileType('rb'))
+    compare_parser.add_argument('files', nargs='+')
     args = parser.parse_args()
 
     if args.command == 'compare':
-        compare(args.file1, args.file2)
+        filenames = []
+        for pattern in args.files:
+            filenames.extend(glob.iglob(pattern))
+        compare(filenames)
     elif args.command == 'chop':
         # Step 1: read content
         with open(__file__, 'r') as f:
@@ -81,4 +103,8 @@ if __name__ == '__main__':
         ds = DataStore()
         chop(content, ds)
     else:
-        raise NotImplementedError(args.command)
+        parser.print_help()
+
+
+if __name__ == '__main__':
+    main()

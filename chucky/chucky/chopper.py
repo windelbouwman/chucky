@@ -1,4 +1,4 @@
-import buzhash
+from . import buzhash
 
 import logging
 import statistics
@@ -6,6 +6,7 @@ import functools
 import operator
 
 logger = logging.getLogger('chucky')
+
 
 class ChoppedData:
     """ Data chopped into chunks """

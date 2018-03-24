@@ -19,9 +19,9 @@ where chucky is intended for microcontrollers!
 
 To compare two firmware files, use the compare command like this:
 
-    python chucky.py compare ../demos/pybv10-20170611-v1.9.1.dfu ../demos/pybv10-20170823-v1.9.2.dfu
+    python -m chucky compare ../demos/pybv10*.dfu
 
-This example command compares two micropython releases from https://micropython.org/download/
+This example command compares micropython releases from https://micropython.org/download/
 
 
 # Build status

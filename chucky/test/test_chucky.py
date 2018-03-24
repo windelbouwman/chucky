@@ -3,9 +3,9 @@ import functools
 import operator
 
 import chucky
-from chucky_chopper import chunk_content
-from chucky_chopper import ChoppedData
-import buzhash
+from chucky.chopper import chunk_content
+from chucky.chopper import ChoppedData
+from chucky import buzhash
 
 
 class ChuckyChopperTestCase(unittest.TestCase):
